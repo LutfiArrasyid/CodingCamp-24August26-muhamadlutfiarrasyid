@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Life Dashboard — clock, to-do list, focus timer and quick links in one page." />
+  <title>Life Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- Theme toggle -->
+  <button id="btn-theme" onclick="toggleTheme()" aria-label="Toggle light/dark mode">
+    <span id="theme-icon">☀️</span>
+    <span id="theme-label">Light</span>
+  </button>
+
+  <div class="dashboard">
+
+    <!-- ══ CLOCK ══════════════════════════════════ -->
+    <div class="card clock-card" role="region" aria-label="Current time and greeting">
+
+      <div class="clock-left">
+        <!-- Time + weather on the same row, vertically centred -->
+        <div class="clock-time-row">
+          <div id="clock-time">
+            <span id="c-h">00</span><span class="colon">:</span><span id="c-m">00</span><span class="colon">:</span><span id="c-s">00</span>
+          </div>
+
+          <!-- Weather widget — sits beside the clock -->
+          <div id="weather-widget" class="weather-widget" aria-live="polite">
+            <span id="weather-icon" class="weather-icon" aria-hidden="true"></span>
+            <div class="weather-info">
+              <span id="weather-temp" class="weather-temp"></span>
+              <span id="weather-desc" class="weather-desc"></span>
+              <span id="weather-city" class="weather-city"></span>
+            </div>
+          </div>
+        </div>
+
+        <div id="clock-date"></div>
+      </div>
+
+      <div class="clock-right">
+        <div class="greeting" id="greeting" aria-live="polite">
+          <span id="greeting-text"></span>
+          <button id="btn-edit-name" onclick="startEditName()" title="Change name" aria-label="Change name">✏️</button>
+          <span id="greeting-edit" style="display:none">
+            <input type="text" id="name-input" maxlength="30" aria-label="Your name" />
+            <button class="btn btn-accent btn-sm" onclick="saveName()">Save</button>
+            <button class="btn btn-ghost btn-sm" onclick="cancelEditName()">Cancel</button>
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ══ FOCUS TIMER ════════════════════════════ -->
+    <div class="card timer-card" role="region" aria-label="Focus timer">
+      <h2>⏱ Focus Timer</h2>
+
+      <div class="timer-modes" role="group" aria-label="Timer mode">
+        <button
+          class="mode-btn active"
+          data-key="pomodoro"
+          data-label="Focus Session"
+          onclick="setMode(this)"
+        >
+          Pomodoro
+        </button>
+        <button
+          class="mode-btn"
+          data-key="shortBreak"
+          data-label="Short Break"
+          onclick="setMode(this)"
+        >
+          Short Break
+        </button>
+        <button
+          class="mode-btn"
+          data-key="longBreak"
+          data-label="Long Break"
+          onclick="setMode(this)"
+        >
+          Long Break
+        </button>
+      </div>
+
+      <!-- Custom duration row -->
+      <div class="timer-duration-row">
+        <label class="duration-label" for="duration-input">
+          Duration (minutes):
+        </label>
+        <div class="duration-controls">
+          <input
+            type="number"
+            id="duration-input"
+            min="1"
+            max="180"
+            value="25"
+            aria-label="Timer duration in minutes"
+          />
+          <button class="btn btn-accent btn-sm" onclick="applyDuration()">Set</button>
+        </div>
+        <span class="duration-hint" id="duration-hint"></span>
+      </div>
+
+      <div class="timer-ring-wrap">
+        <svg
+          id="timer-ring"
+          width="170"
+          height="170"
+          viewBox="0 0 170 170"
+          role="presentation"
+          aria-hidden="true"
+        >
+          <circle id="ring-track" cx="85" cy="85" r="72" />
+          <circle id="ring-fill"  cx="85" cy="85" r="72" />
+        </svg>
+        <div class="timer-center">
+          <div id="timer-time">25:00</div>
+          <div id="timer-label">Focus Session</div>
+        </div>
+      </div>
+
+      <div class="timer-controls">
+        <button class="btn-timer" id="btn-start" onclick="toggleTimer()">▶ Start</button>
+        <button class="btn-timer" id="btn-reset" onclick="resetTimer()">↺ Reset</button>
+      </div>
+
+      <div class="session-badge" id="session-badge" aria-label="Completed sessions"></div>
+    </div>
+
+    <!-- ══ TO-DO LIST ══════════════════════════════ -->
+    <div class="card todo-card" role="region" aria-label="To-do list">
+      <h2>📝 Today's Tasks</h2>
+
+      <div class="todo-input-row">
+        <input
+          type="text"
+          id="todo-input"
+          placeholder="Add a new task…"
+          maxlength="120"
+          aria-label="New task"
+        />
+        <button class="btn btn-accent" onclick="addTodo()" aria-label="Add task">
+          Add
+        </button>
+      </div>
+
+      <div
+        class="todo-progress-wrap"
+        role="progressbar"
+        aria-valuenow="0"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-label="Task completion progress"
+      >
+        <div id="todo-progress-bar"></div>
+      </div>
+
+      <div class="todo-meta">
+        <span class="todo-stats" id="todo-stats" aria-live="polite"></span>
+        <div class="todo-meta-actions">
+          <select id="todo-sort" onchange="applySort()" aria-label="Sort tasks">
+            <option value="default">⇅ Default</option>
+            <option value="az">A → Z</option>
+            <option value="za">Z → A</option>
+            <option value="active">Active first</option>
+            <option value="done">Done first</option>
+          </select>
+          <button
+            id="btn-clear-done"
+            onclick="clearDone()"
+            style="display: none"
+            aria-label="Clear all completed tasks"
+          >
+            Clear done
+          </button>
+        </div>
+      </div>
+
+      <ul id="todo-list" aria-label="Task list"></ul>
+    </div>
+
+    <!-- ══ QUICK LINKS ════════════════════════════ -->
+    <div class="card links-card" role="region" aria-label="Quick links">
+      <div class="links-header">
+        <h2>🔗 Quick Links</h2>
+        <button
+          class="btn btn-accent"
+          id="add-link-btn"
+          onclick="toggleAddLink()"
+          aria-expanded="false"
+          aria-controls="add-link-form"
+        >
+          + Add Link
+        </button>
+      </div>
+
+      <div class="links-grid" id="links-grid"></div>
+
+      <form
+        class="add-link-form"
+        id="add-link-form"
+        onsubmit="saveLink(event)"
+        aria-label="Add a new quick link"
+        novalidate
+      >
+        <input type="text" id="link-name" placeholder="Name  (e.g. GitHub)" maxlength="30" aria-label="Link name" />
+        <input type="text" id="link-url"  placeholder="URL   (e.g. https://github.com)"   aria-label="Link URL" />
+
+        <!-- Icon field: emoji text OR image upload -->
+        <div class="icon-field">
+          <div class="icon-preview-wrap">
+            <span id="icon-preview" class="icon-preview" aria-hidden="true">🔗</span>
+          </div>
+          <div class="icon-inputs">
+            <input
+              type="text"
+              id="link-emoji"
+              placeholder="Emoji (e.g. 🐙)"
+              maxlength="4"
+              aria-label="Link icon emoji"
+              oninput="onEmojiInput()"
+            />
+            <span class="icon-or">or</span>
+            <label class="btn btn-ghost btn-sm icon-upload-label" title="Upload an image">
+              📁 Image
+              <input
+                type="file"
+                id="link-image"
+                accept="image/*"
+                aria-label="Upload link icon image"
+                onchange="onImageUpload(event)"
+              />
+            </label>
+            <button
+              type="button"
+              class="btn btn-ghost btn-sm"
+              id="btn-clear-icon"
+              onclick="clearIcon()"
+              title="Reset icon"
+              style="display:none"
+            >✕ Clear</button>
+          </div>
+        </div>
+
+        <!-- Icon size slider — only shown when an image is uploaded -->
+        <div class="icon-size-row" id="icon-size-row" style="display:none">
+          <label class="icon-size-label" for="icon-size-slider">
+            Icon size: <span id="icon-size-val">48</span>px
+          </label>
+          <input
+            type="range"
+            id="icon-size-slider"
+            min="24"
+            max="72"
+            value="48"
+            step="4"
+            aria-label="Icon display size"
+            oninput="onIconSizeChange(this.value)"
+          />
+        </div>
+
+        <span class="field-hint" id="link-hint"></span>
+        <button type="submit" class="btn btn-accent">Save</button>
+        <button type="button" class="btn btn-ghost" onclick="toggleAddLink()">Cancel</button>
+      </form>
+    </div>
+
+  </div><!-- /.dashboard -->
+
+  <!-- Toast notification -->
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
